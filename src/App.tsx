@@ -177,6 +177,84 @@ const OUTPUT_CARDS = [
   { key: 'Bonus Growth Tip', icon: TrendingUp, gradient: 'purple' },
 ]
 
+const OUTPUT_KEYS = OUTPUT_CARDS.map(c => c.key)
+
+async function callGemini(form: FormValues): Promise<Record<string, string>> {
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY
+  if (!apiKey) throw new Error('No API key')
+
+  const prompt = `You are a world-class marketing strategist. Generate a personalized daily marketing plan for the following business:
+
+Business Type: ${form.businessType}
+Product or Service Name: ${form.productName}
+Target Audience: ${form.targetAudience}
+Goal: ${form.goal}
+
+Generate exactly these 7 sections. Each section must start with the exact label in brackets on its own line, followed by the content. Do not add any other sections or text.
+
+[Viral Reel Idea]
+Write a specific, actionable 60-second reel concept that uses the product name and target audience. Include format, hook, structure, and why it works.
+
+[Scroll-Stopping Hook]
+Write a powerful opening hook for a short-form video that directly names the target audience and product. Make it impossible to scroll past.
+
+[Instagram Caption]
+Write a full Instagram caption with line breaks, emojis where appropriate, and a clear CTA. Personalize it with the product name, audience, and goal.
+
+[Facebook/TikTok Ad Copy]
+Write a short-form ad (4-6 short paragraphs) personalized with the product name, audience, and goal. End with a strong call to action.
+
+[Best Time To Post]
+Provide a realistic weekly posting schedule across Instagram, TikTok, and Facebook, tailored to the audience and business type. Include specific days, times, and a peak engagement window.
+
+[Suggested Hashtags]
+Provide 12-15 relevant hashtags that combine product-specific, niche, audience, and trending tags. Format as a single line separated by spaces, each starting with #.
+
+[Bonus Growth Tip]
+Give one specific, actionable marketing growth tip personalized to this product, audience, and goal. Make it practical and implementable today.`
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.9,
+          maxOutputTokens: 2048,
+        },
+      }),
+    },
+  )
+
+  if (!res.ok) throw new Error(`API error: ${res.status}`)
+
+  const data = await res.json()
+  const text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+  if (!text) throw new Error('Empty response')
+
+  const result: Record<string, string> = {}
+  for (const key of OUTPUT_KEYS) {
+    const regex = new RegExp(`\\[${key}\\]\\s*([\\s\\S]*?)(?=\\[(?:${OUTPUT_KEYS.join('|')})\\]|$)`, 'i')
+    const match = text.match(regex)
+    result[key] = match ? match[1].trim() : ''
+    if (!result[key]) {
+      const lineStart = text.indexOf(`[${key}]`)
+      if (lineStart !== -1) {
+        const afterLabel = text.slice(lineStart + key.length + 2)
+        const nextLabel = OUTPUT_KEYS.reduce((earliest, k) => {
+          const idx = afterLabel.indexOf(`[${k}]`)
+          return idx > 0 && (earliest === -1 || idx < earliest) ? idx : earliest
+        }, -1)
+        result[key] = (nextLabel > 0 ? afterLabel.slice(0, nextLabel) : afterLabel).trim()
+      }
+    }
+  }
+
+  return result
+}
+
 const FEATURES = [
   { icon: Sparkles, title: 'AI Content Engine', desc: 'Generate viral ideas, hooks, and full copy in seconds — not hours.' },
   { icon: Users, title: 'Audience-First', desc: 'Every output is tailored to your specific audience and goal.' },
@@ -221,21 +299,28 @@ function App() {
     setDashboardReady(false)
     setLoadingStep(0)
 
-    // Step through loading phases (~2s total)
+    // Step through loading phases
     LOADING_STEPS.forEach((_, i) => {
       setTimeout(() => {
         setLoadingStep(i)
       }, 500 * (i + 1))
     })
 
-    // After all steps complete, reveal dashboard
-    setTimeout(() => {
-      const filled = generateContent(snapshot)
-      setOutputs(filled)
-      setLoadingStep(-1)
-      setIsGenerating(false)
-      setDashboardReady(true)
-    }, 2000)
+    // Try Gemini API first, fallback to local templates
+    callGemini(snapshot)
+      .then(filled => {
+        setOutputs(filled)
+        setLoadingStep(-1)
+        setIsGenerating(false)
+        setDashboardReady(true)
+      })
+      .catch(() => {
+        const filled = generateContent(snapshot)
+        setOutputs(filled)
+        setLoadingStep(-1)
+        setIsGenerating(false)
+        setDashboardReady(true)
+      })
   }, [isGenerating, formData])
 
   const handleCopyFullPlan = useCallback(() => {
