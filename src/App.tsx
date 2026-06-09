@@ -22,93 +22,10 @@ const LOADING_STEPS = [
 
 type FormValues = { businessType: string; productName: string; targetAudience: string; goal: string }
 
-const HASHTAG_PREFIXES: Record<string, string[]> = {
-  'Digital Products': ['DigitalProducts', 'DigitalDownload', 'OnlineCourse', 'EbookLife', 'DigitalCreator', 'InfoProduct'],
-  'Affiliate Marketing': ['AffiliateMarketing', 'PassiveIncome', 'AffiliateTips', 'SideHustle', 'MakeMoneyOnline', 'AffiliateSuccess'],
-  'E-commerce': ['EcommerceLife', 'OnlineStore', 'ShopSmall', 'ProductLaunch', 'EcomTips', 'RetailTherapy'],
-  'Agency': ['AgencyLife', 'DigitalAgency', 'MarketingAgency', 'ClientResults', 'AgencyGrowth', 'ServiceBusiness'],
-  'Content Creator': ['CreatorEconomy', 'ContentCreator', 'CreatorLife', 'CreatorTips', 'BuildInPublic', 'CreatorBusiness'],
-  'Local Business': ['LocalBusiness', 'SmallBusiness', 'ShopLocal', 'CommunityFirst', 'LocalMarketing', 'MainStreet'],
-}
-
 const GOAL_VERBS: Record<string, { action: string; noun: string; verb: string }> = {
   'More Sales': { action: 'drive more sales for', noun: 'buyers', verb: 'converting' },
   'More Followers': { action: 'grow your audience for', noun: 'followers', verb: 'growing' },
   'More Leads': { action: 'attract more leads for', noun: 'prospects', verb: 'attracting' },
-}
-
-function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)] }
-
-function titleCase(s: string): string {
-  return s.replace(/\b\w+/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-}
-
-function slugHashtag(s: string): string {
-  return '#' + s.replace(/[^a-zA-Z0-9]+/g, '').slice(0, 30)
-}
-
-function generateContent(form: FormValues): Record<string, string> {
-  const p = form.productName || 'your product'
-  const a = form.targetAudience || 'your audience'
-  const bt = form.businessType || 'your business'
-  const g = form.goal || 'More Sales'
-  const gv = GOAL_VERBS[g] || GOAL_VERBS['More Sales']
-
-  const reelOpeners = [
-    `Create a 60-second "Day In My Life" reel showing how ${p} transforms a typical workday for ${a}. Open with the struggle — overwhelm, wasted time, lost revenue — then reveal ${p} as the turning point. End with a split-screen: before vs. after. Add trending audio and text overlays. This format gets 3x more saves than standard product demos.`,
-    `Film a "POV: you just discovered ${p}" reel that shows the exact moment a ${a.split(',')[0].trim()} realizes they've been doing things the hard way. Start with the frustration, transition to the discovery, and close with a results shot. Use a trending transition sound and overlay key stats. Reels like this consistently outperform talking-head content.`,
-    `Make a "What I Wish I Knew Before Starting" reel focused on ${a.split(',')[0].trim()} mistakes — and position ${p} as the answer. Start with the hook, deliver 3 quick lessons, and reveal ${p} as the tool that changes everything. This storytelling format drives saves and shares, which the algorithm rewards with 2-4x more reach.`,
-  ]
-
-  const hooks = [
-    `"Most ${a.split(',')[0].trim()} fail because they market ${p} the wrong way..." — open with this, then immediately show the mistake vs. the fix. People don't scroll past a problem they recognize. Pair it with a face-to-camera cold open and watch your retention rate hit 85%+ in the first 3 seconds.`,
-    `"I was this close to giving up on ${p} — until I figured this out..." — vulnerability outperforms bravado every time. Lead with the raw moment of doubt, then flip to the breakthrough. This hook structure consistently delivers 2x more watch time than generic opens.`,
-    `"Stop scrolling if you're a ${a.split(',')[0].trim()} who wants to ${gv.action} ${p}..." — direct address hooks work because they name the viewer's identity and desire in one sentence. The first 2 seconds determine everything. Say this to camera and your 3-second retention will beat 90% of posts in your niche.`,
-  ]
-
-  const captions = [
-    `The truth nobody tells ${a} about ${gv.action} ${p}?\n\nIt's not about working harder. It's about working smarter.\n\nI used to spend hours every day trying to create the perfect marketing message for ${p}. Now it takes minutes — and the results speak for themselves.\n\nThe secret isn't more effort. It's using the right strategy to ${gv.verb} ${gv.noun} who actually need what you offer.\n\n${a.split(',')[0].trim()}, your next breakthrough is one strategy shift away.\n\nLink in bio.`,
-    `Here's what ${a} get wrong about ${p}:\n\nThey think great marketing means shouting louder. It doesn't. It means speaking directly to the people who need ${p} most — in a language they already understand.\n\nWhen you stop marketing to everyone and start marketing to ${a.split(',')[0].trim()}, everything changes. Your engagement rises. Your ${gv.noun} convert. Your business grows — without burning out.\n\nThis is the approach that changed everything for ${p}. And it can change everything for you too.\n\nReady? Link in bio.`,
-    `${a.split(',')[0].trim()} — if you're still trying to ${gv.action} ${p} without a system, you're making it harder than it needs to be.\n\nThe difference between creators who grow and creators who stall isn't talent. It's strategy. The ones who grow have a repeatable plan. The ones who stall are reinventing the wheel every single day.\n\n${p} deserves marketing that works as hard as you do. Let's build that plan.\n\nYour next level is one click away. Link in bio.`,
-  ]
-
-  const adCopies = [
-    `Still struggling to ${gv.action} ${p}?\n\nThere's a better way.\n\nBusiness Buddy AI builds your entire daily marketing plan in seconds — viral hooks, scroll-stopping captions, optimized ad copy, and the exact posting times that get results for ${a}.\n\nNo more guessing. No more blank page syndrome. Just proven, personalized content ready to publish — tailored to ${gv.verb} ${gv.noun} for ${p}.\n\nJoin 10,000+ ${a.split(',')[0].trim()} who stopped hustling and started scaling.\n\nTry it free today — no credit card needed.`,
-    `What if marketing ${p} to ${a} was automatic?\n\nEvery morning, you'd wake up to a fresh marketing plan — the perfect hook for your next reel, a caption that converts, ad copy that stops the scroll, and the exact time to post for maximum reach.\n\nThat's Business Buddy AI. Built for ${a.split(',')[0].trim()} who want to ${gv.action} ${p} without spending their whole day on content.\n\nNo brainstorming. No burnout. Just results.\n\nStart free today.`,
-    `Attention ${a.split(',')[0].trim()} — stop wasting hours on content that doesn't ${gv.verb.replace('ing', '')} ${gv.noun}.\n\nBusiness Buddy AI generates your complete daily marketing plan for ${p} in seconds. Hooks that stop the scroll. Captions that convert. Ad copy that gets clicks. All personalized to your audience and goal: ${g}.\n\nThe top-performing ${a.split(',')[0].trim()} are already using it. The question is — why aren't you?\n\nNo credit card. No catch. Just click.`,
-  ]
-
-  const postTimeMap: Record<string, { ig: string; tt: string; fb: string; peak: string }> = {
-    'Digital Products': { ig: 'Tue/Thu at 7:30am & 8:45pm', tt: 'Mon/Wed/Fri at 6:15am & 9:00pm', fb: 'Wed at 8:00am, Sat at 10:00am', peak: '7:00-8:30am' },
-    'Affiliate Marketing': { ig: 'Mon/Wed at 6:00am & 9:15pm', tt: 'Tue/Thu/Fri at 7:00am & 10:00pm', fb: 'Thu at 7:30am, Sun at 11:00am', peak: '6:00-7:30am' },
-    'E-commerce': { ig: 'Wed/Fri at 8:00am & 7:30pm', tt: 'Mon/Thu/Sat at 6:30am & 9:30pm', fb: 'Tue at 9:00am, Sat at 12:00pm', peak: '8:00-9:30am' },
-    'Agency': { ig: 'Tue/Thu at 8:30am & 6:00pm', tt: 'Wed/Fri at 7:00am & 8:00pm', fb: 'Mon at 9:00am, Thu at 8:30am', peak: '8:30-10:00am' },
-    'Content Creator': { ig: 'Mon/Thu at 7:00am & 9:00pm', tt: 'Tue/Fri/Sun at 6:00am & 10:30pm', fb: 'Wed at 8:00am, Sat at 11:00am', peak: '6:30-8:00am' },
-    'Local Business': { ig: 'Wed/Fri at 9:00am & 5:30pm', tt: 'Tue/Thu at 8:00am & 7:00pm', fb: 'Mon at 10:00am, Sat at 9:00am', peak: '9:00-10:30am' },
-  }
-
-  const schedule = postTimeMap[bt] || postTimeMap['Digital Products']
-
-  const nicheTags = HASHTAG_PREFIXES[bt] || HASHTAG_PREFIXES['Digital Products']
-  const productTag = slugHashtag(p)
-  const audienceWords = a.split(/,\s*/).map(w => titleCase(w.trim()).replace(/\s+/g, ''))
-  const audienceTags = audienceWords.slice(0, 3).map(w => '#' + w)
-
-  const growthTips = [
-    `Start a "Weekly Wins" email every Monday — share one real metric you improved last week for ${p} (e.g. "${gv.noun} grew 12%"). It builds trust through transparency, trains ${a} to open every Monday, and creates a content repurposing engine: email becomes carousel, carousel becomes reel, reel becomes ad. One insight, four platforms. That's how you ${gv.action.replace('drive ', '').replace('grow ', '').replace('attract ', '')}${p} without burning out.`,
-    `Create a free "Quick Start" guide for ${p} and gate it behind an email signup. ${a.split(',')[0].trim()} love actionable free resources, and every download becomes a warm lead you can nurture. Promote it in every bio, caption, and story. This single asset can generate ${gv.noun} on autopilot for months — and it positions ${p} as the go-to solution in your niche.`,
-    `Launch a 5-day challenge on social media tied to ${p}. Each day, give ${a.split(',')[0].trim()} one small action step that delivers a quick win. On day 5, make your pitch. Challenges create momentum, build community, and give you 5 days of content from one idea. The best part? Participants who complete all 5 days convert to ${gv.noun} at 3x the rate of cold traffic.`,
-  ]
-
-  return {
-    'Viral Reel Idea': pick(reelOpeners),
-    'Scroll-Stopping Hook': pick(hooks),
-    'Instagram Caption': pick(captions),
-    'Facebook/TikTok Ad Copy': pick(adCopies),
-    'Best Time To Post': `Based on your audience profile (${a}, optimized for ${g.toLowerCase()}), your ideal posting schedule as a ${bt} business is:\n\nInstagram: ${schedule.ig}\nTikTok: ${schedule.tt}\nFacebook: ${schedule.fb}\n\nPeak engagement window: ${schedule.peak} (pre-work scroll session). Schedule your highest-value content for ${p} here.`,
-    'Suggested Hashtags': `${productTag} ${nicheTags.join(' ')} ${audienceTags.join(' ')} #MarketingStrategy #BusinessBuddyAI #ContentThatConverts #GrowthMindset #OnlineSuccess`,
-    'Bonus Growth Tip': pick(growthTips),
-  }
 }
 
 type CalendarRow = { day: number; platform: string; idea: string }
@@ -180,8 +97,8 @@ const OUTPUT_CARDS = [
 const OUTPUT_KEYS = OUTPUT_CARDS.map(c => c.key)
 
 async function callGemini(form: FormValues): Promise<Record<string, string>> {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY
-  if (!apiKey) throw new Error('No API key')
+  const API_KEY = import.meta.env.VITE_GEMINI_API_KEY
+  if (!API_KEY) throw new Error('No API key')
 
   const prompt = `You are a world-class marketing strategist. Generate a personalized daily marketing plan for the following business:
 
@@ -214,7 +131,7 @@ Provide 12-15 relevant hashtags that combine product-specific, niche, audience, 
 Give one specific, actionable marketing growth tip personalized to this product, audience, and goal. Make it practical and implementable today.`
 
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -278,6 +195,7 @@ function App() {
   const [copied, setCopied] = useState(false)
   const [copiedCard, setCopiedCard] = useState<string | null>(null)
   const [showToast, setShowToast] = useState(false)
+  const [generateError, setGenerateError] = useState(false)
   const [calendarRows, setCalendarRows] = useState<CalendarRow[]>([])
   const [calendarReady, setCalendarReady] = useState(false)
   const [calendarLoading, setCalendarLoading] = useState(false)
@@ -297,6 +215,7 @@ function App() {
     setIsGenerating(true)
     setOutputs({})
     setDashboardReady(false)
+    setGenerateError(false)
     setLoadingStep(0)
 
     // Step through loading phases
@@ -306,7 +225,7 @@ function App() {
       }, 500 * (i + 1))
     })
 
-    // Try Gemini API first, fallback to local templates
+    // Call Gemini API
     callGemini(snapshot)
       .then(filled => {
         setOutputs(filled)
@@ -315,11 +234,9 @@ function App() {
         setDashboardReady(true)
       })
       .catch(() => {
-        const filled = generateContent(snapshot)
-        setOutputs(filled)
         setLoadingStep(-1)
         setIsGenerating(false)
-        setDashboardReady(true)
+        setGenerateError(true)
       })
   }, [isGenerating, formData])
 
@@ -541,7 +458,7 @@ function App() {
           )}
 
           {/* ===== SKELETON PLACEHOLDER (before generation) ===== */}
-          {!isGenerating && !dashboardReady && (
+          {!isGenerating && !dashboardReady && !generateError && (
             <div className="results">
               {OUTPUT_CARDS.map(({ key, icon: Icon, gradient }) => (
                 <div key={key} className={`result-card result-card--${gradient}`}>
@@ -558,6 +475,20 @@ function App() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* ===== ERROR MESSAGE ===== */}
+          {generateError && (
+            <div className="error-message">
+              <div className="error-message__icon">
+                <X size={20} />
+              </div>
+              <p className="error-message__text">AI generation failed. Please try again.</p>
+              <button className="error-message__btn" onClick={handleGenerate}>
+                <Sparkles size={15} />
+                Try Again
+              </button>
             </div>
           )}
 
